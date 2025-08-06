@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Time Calculator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #eef2f3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      max-width: 90%;
+      width: 400px;
+    }
+    h2 {
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      color: #333;
+      text-align: center;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    input {
+      flex: 1;
+      padding: 0.8rem;
+      font-size: 1rem;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      transition: border-color 0.3s ease;
+    }
+    input.valid {
+      border-color: green;
+    }
+    input.invalid {
+      border-color: red;
+    }
+    .toggle {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #ddd;
+      font-weight: bold;
+      user-select: none;
+    }
+    .toggle.active {
+      background-color: #4caf50;
+      color: white;
+    }
+    .output {
+      margin-top: 1.2rem;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #222;
+      text-align: center;
+      min-height: 1.5rem;
+    }
+    @media (max-width: 480px) {
+      .container {
+        padding: 1.2rem;
+      }
+      h2 {
+        font-size: 1.3rem;
+      }
+      .toggle {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Mobigic Work Hour Calculator</h2>
+    <div class="row">
+      <input type="text" id="timeInput" placeholder="hh:mm" />
+      <button id="ampmToggle" class="toggle">AM</button>
+      <button id="inoutToggle" class="toggle active">OUT</button>
+    </div>
+    <div class="output" id="result"></div>
+  </div>
+
+  <script>
+    let isAM = true;
+    let isOUT = true;
+
+    const timeInput = document.getElementById('timeInput');
+    const ampmToggle = document.getElementById('ampmToggle');
+    const inoutToggle = document.getElementById('inoutToggle');
+    const resultDiv = document.getElementById('result');
+
+    // Format as hh:mm AM/PM
+    function formatTo12Hour(date) {
+      let hours = date.getHours();
+      let minutes = date.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+      return `${hours}:${minutes} ${ampm}`;
+    }
+
+    // Set default time on load
+    function setDefaultTime() {
+      const now = new Date();
+      timeInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      calculateTime();
+    }
+
+    // Auto insert ':' after 2 digits
+    timeInput.addEventListener('input', function (e) {
+      let value = e.target.value.replace(/[^\d]/g, '');
+      if (value.length >= 3) {
+        value = value.slice(0, 2) + ':' + value.slice(2, 4);
+      }
+      e.target.value = value;
+      calculateTime();
+    });
+
+    // Toggle AM/PM
+    ampmToggle.addEventListener('click', () => {
+      isAM = !isAM;
+      ampmToggle.innerText = isAM ? 'AM' : 'PM';
+      calculateTime();
+    });
+
+    // Toggle IN/OUT
+    inoutToggle.addEventListener('click', () => {
+      isOUT = !isOUT;
+      inoutToggle.innerText = isOUT ? 'OUT' : 'IN';
+      inoutToggle.classList.toggle('active', isOUT);
+      calculateTime();
+    });
+
+    // Parse time input supporting both 12h and 24h
+    function parseTimeInput(timeStr) {
+      const match = /^(\d{1,2}):(\d{2})$/.exec(timeStr.trim());
+      if (!match) return null;
+
+      let [_, hrs, mins] = match;
+      let hours = parseInt(hrs, 10);
+      let minutes = parseInt(mins, 10);
+
+      if (hours > 23 || minutes > 59) return null;
+
+      if (hours >= 13 || (hours === 0 && !isAM)) {
+        return { hours, minutes }; // treat as 24h input
+      }
+
+      // 12h mode using AM/PM
+      if (!isAM && hours !== 12) hours += 12;
+      if (isAM && hours === 12) hours = 0;
+
+      return { hours, minutes };
+    }
+
+    function calculateTime() {
+      const parsed = parseTimeInput(timeInput.value);
+
+      if (!parsed) {
+        timeInput.classList.remove('valid');
+        timeInput.classList.add('invalid');
+        resultDiv.innerText = '';
+        return;
+      }
+
+      timeInput.classList.remove('invalid');
+      timeInput.classList.add('valid');
+
+      const date = new Date();
+      date.setHours(parsed.hours);
+      date.setMinutes(parsed.minutes);
+      date.setSeconds(0);
+
+      const deltaMinutes = 9 * 60 + 30;
+      date.setMinutes(date.getMinutes() + (isOUT ? deltaMinutes : -deltaMinutes));
+
+      const result = formatTo12Hour(date);
+      resultDiv.innerText = `Result Time: ${result}`;
+    }
+
+    window.onload = setDefaultTime;
+  </script>
+</body>
+</html>
