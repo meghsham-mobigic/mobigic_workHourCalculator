@@ -236,14 +236,17 @@
       resultDiv.innerText = `Result Time: ${result}`;
     }
 
-    // THEME toggle
-    function loadTheme() {
-      const saved = localStorage.getItem('theme');
-      if (saved === 'dark') {
-        document.body.classList.add('dark');
-        themeToggle.textContent = '🌞';
-      }
-    }
+ function loadTheme() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') {
+    document.body.classList.remove('dark');
+    themeToggle.textContent = '🌙';
+  } else {
+    document.body.classList.add('dark');
+    themeToggle.textContent = '🌞';
+  }
+}
+
 
     themeToggle.addEventListener('click', () => {
       const isDark = document.body.classList.toggle('dark');
