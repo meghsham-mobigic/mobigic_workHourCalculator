@@ -5,53 +5,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Time Calculator</title>
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --bg-light: #eef2f3;
+      --bg-dark: #1e1e1e;
+      --text-light: #333;
+      --text-dark: #f2f2f2;
+      --container-light: #fff;
+      --container-dark: #2a2a2a;
+      --border-light: #ccc;
+      --border-dark: #555;
     }
+
     body {
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #eef2f3;
+      background-color: var(--bg-light);
+      color: var(--text-light);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      transition: all 0.3s ease;
     }
+
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
     .container {
-      background-color: #fff;
+      background-color: var(--container-light);
       padding: 2rem;
       border-radius: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       max-width: 90%;
       width: 400px;
+      transition: all 0.3s ease;
     }
+
+    body.dark .container {
+      background-color: var(--container-dark);
+    }
+
     h2 {
       margin-bottom: 20px;
       font-size: 1.5rem;
-      color: #333;
       text-align: center;
     }
+
     .row {
       display: flex;
       align-items: center;
       gap: 10px;
       margin-bottom: 1rem;
     }
+
     input {
       flex: 1;
       padding: 0.8rem;
       font-size: 1rem;
-      border: 2px solid #ccc;
+      border: 2px solid var(--border-light);
       border-radius: 6px;
       transition: border-color 0.3s ease;
     }
+
+    body.dark input {
+      background-color: #444;
+      color: white;
+      border-color: var(--border-dark);
+    }
+
     input.valid {
-      border-color: green;
+      border-color: green !important;
     }
+
     input.invalid {
-      border-color: red;
+      border-color: red !important;
     }
+
     .toggle {
       padding: 0.5rem 1rem;
       border: none;
@@ -60,19 +92,32 @@
       background-color: #ddd;
       font-weight: bold;
       user-select: none;
+      transition: background 0.3s ease;
     }
+
     .toggle.active {
       background-color: #4caf50;
       color: white;
     }
+
+    .theme-toggle {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
     .output {
       margin-top: 1.2rem;
       font-weight: bold;
       font-size: 1.2rem;
-      color: #222;
       text-align: center;
       min-height: 1.5rem;
     }
+
     @media (max-width: 480px) {
       .container {
         padding: 1.2rem;
@@ -88,8 +133,9 @@
   </style>
 </head>
 <body>
+  <button class="theme-toggle" id="themeToggle">🌙</button>
   <div class="container">
-    <h2>Mobigic Work Hour Calculator</h2>
+    <h2>Time Calculator (+/- 9.5 Hours)</h2>
     <div class="row">
       <input type="text" id="timeInput" placeholder="hh:mm" />
       <button id="ampmToggle" class="toggle">AM</button>
@@ -106,8 +152,9 @@
     const ampmToggle = document.getElementById('ampmToggle');
     const inoutToggle = document.getElementById('inoutToggle');
     const resultDiv = document.getElementById('result');
+    const themeToggle = document.getElementById('themeToggle');
 
-    // Format as hh:mm AM/PM
+    // Format to hh:mm AM/PM
     function formatTo12Hour(date) {
       let hours = date.getHours();
       let minutes = date.getMinutes();
@@ -117,14 +164,13 @@
       return `${hours}:${minutes} ${ampm}`;
     }
 
-    // Set default time on load
     function setDefaultTime() {
       const now = new Date();
       timeInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       calculateTime();
     }
 
-    // Auto insert ':' after 2 digits
+    // Auto insert :
     timeInput.addEventListener('input', function (e) {
       let value = e.target.value.replace(/[^\d]/g, '');
       if (value.length >= 3) {
@@ -134,14 +180,12 @@
       calculateTime();
     });
 
-    // Toggle AM/PM
     ampmToggle.addEventListener('click', () => {
       isAM = !isAM;
       ampmToggle.innerText = isAM ? 'AM' : 'PM';
       calculateTime();
     });
 
-    // Toggle IN/OUT
     inoutToggle.addEventListener('click', () => {
       isOUT = !isOUT;
       inoutToggle.innerText = isOUT ? 'OUT' : 'IN';
@@ -149,22 +193,19 @@
       calculateTime();
     });
 
-    // Parse time input supporting both 12h and 24h
     function parseTimeInput(timeStr) {
       const match = /^(\d{1,2}):(\d{2})$/.exec(timeStr.trim());
       if (!match) return null;
-
       let [_, hrs, mins] = match;
       let hours = parseInt(hrs, 10);
       let minutes = parseInt(mins, 10);
-
       if (hours > 23 || minutes > 59) return null;
 
       if (hours >= 13 || (hours === 0 && !isAM)) {
-        return { hours, minutes }; // treat as 24h input
+        return { hours, minutes }; // 24h
       }
 
-      // 12h mode using AM/PM
+      // 12h mode
       if (!isAM && hours !== 12) hours += 12;
       if (isAM && hours === 12) hours = 0;
 
@@ -173,7 +214,6 @@
 
     function calculateTime() {
       const parsed = parseTimeInput(timeInput.value);
-
       if (!parsed) {
         timeInput.classList.remove('valid');
         timeInput.classList.add('invalid');
@@ -196,7 +236,25 @@
       resultDiv.innerText = `Result Time: ${result}`;
     }
 
-    window.onload = setDefaultTime;
+    // THEME toggle
+    function loadTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') {
+        document.body.classList.add('dark');
+        themeToggle.textContent = '🌞';
+      }
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('dark');
+      themeToggle.textContent = isDark ? '🌞' : '🌙';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    window.onload = () => {
+      loadTheme();
+      setDefaultTime();
+    };
   </script>
 </body>
 </html>
