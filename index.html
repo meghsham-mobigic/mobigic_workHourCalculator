@@ -6,52 +6,47 @@
   <title>Time Calculator</title>
   <style>
     :root {
-      --bg-light: #eef2f3;
-      --bg-dark: #1e1e1e;
-      --text-light: #333;
-      --text-dark: #f2f2f2;
-      --container-light: #fff;
-      --container-dark: #2a2a2a;
-      --border-light: #ccc;
-      --border-dark: #555;
+      --bg-color: #1e1e1e;
+      --text-color: #fff;
+      --input-bg: #333;
+      --input-border: #666;
+      --valid-border: #4caf50;
+      --invalid-border: #f44336;
+    }
+
+    body.light {
+      --bg-color: #f4f4f4;
+      --text-color: #000;
+      --input-bg: #fff;
+      --input-border: #ccc;
     }
 
     body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-light);
-      color: var(--text-light);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      transition: all 0.3s ease;
-    }
-
-    body.dark {
-      background-color: var(--bg-dark);
-      color: var(--text-dark);
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .container {
-      background-color: var(--container-light);
+      background-color: var(--input-bg);
       padding: 2rem;
       border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       max-width: 90%;
       width: 400px;
-      transition: all 0.3s ease;
-    }
-
-    body.dark .container {
-      background-color: var(--container-dark);
     }
 
     h2 {
       margin-bottom: 20px;
-      font-size: 1.5rem;
       text-align: center;
+      font-size: 1.5rem;
     }
 
     .row {
@@ -65,50 +60,41 @@
       flex: 1;
       padding: 0.8rem;
       font-size: 1rem;
-      border: 2px solid var(--border-light);
+      border: 2px solid var(--input-border);
       border-radius: 6px;
-      transition: border-color 0.3s ease;
-    }
-
-    body.dark input {
-      background-color: #444;
-      color: white;
-      border-color: var(--border-dark);
+      background-color: var(--bg-color);
+      color: var(--text-color);
     }
 
     input.valid {
-      border-color: green !important;
+      border-color: var(--valid-border);
     }
 
     input.invalid {
-      border-color: red !important;
+      border-color: var(--invalid-border);
     }
+    
+    .row.center {
+  justify-content: center;
+}
+    
+    
 
     .toggle {
-      padding: 0.5rem 1rem;
+      padding: 0.6rem 1rem;
+      font-weight: bold;
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      background-color: #ddd;
-      font-weight: bold;
-      user-select: none;
-      transition: background 0.3s ease;
-    }
-
-    .toggle.active {
-      background-color: #4caf50;
+      background-color: #555;
       color: white;
+      min-width: 70px;
+      text-align: center;
     }
 
-    .theme-toggle {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      font-size: 1.5rem;
-      cursor: pointer;
-      background: none;
-      border: none;
-    }
+    .toggle.am-toggle { background-color: #777; }
+    .toggle.in-toggle.active { background-color: #ffc107; color: black; }
+    .toggle.out-toggle.active { background-color: #2196f3; }
 
     .output {
       margin-top: 1.2rem;
@@ -118,60 +104,130 @@
       min-height: 1.5rem;
     }
 
+    .top-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    #themeToggle {
+      font-size: 1.2rem;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
     @media (max-width: 480px) {
       .container {
         padding: 1.2rem;
       }
-      h2 {
-        font-size: 1.3rem;
-      }
+
       .toggle {
+        padding: 0.5rem 0.8rem;
         font-size: 0.9rem;
-        padding: 0.4rem 0.8rem;
+        min-width: 60px;
       }
     }
   </style>
 </head>
 <body>
-  <button class="theme-toggle" id="themeToggle">🌙</button>
   <div class="container">
-    <h2>Time Calculator (+/- 9.5 Hours)</h2>
+    <div class="top-row">
+      <button id="themeToggle">🌞</button>
+    </div>
+    <h2>Time Calculator</h2>
     <div class="row">
       <input type="text" id="timeInput" placeholder="hh:mm" />
-      <button id="ampmToggle" class="toggle">AM</button>
-      <button id="inoutToggle" class="toggle active">OUT</button>
+      <button id="ampmToggle" class="toggle am-toggle">AM</button>
     </div>
+<div class="row center">
+  <button id="inoutToggle" class="toggle in-toggle active">IN Time</button>
+</div>
+
     <div class="output" id="result"></div>
   </div>
 
   <script>
-    let isAM = true;
-    let isOUT = true;
-
     const timeInput = document.getElementById('timeInput');
     const ampmToggle = document.getElementById('ampmToggle');
     const inoutToggle = document.getElementById('inoutToggle');
     const resultDiv = document.getElementById('result');
     const themeToggle = document.getElementById('themeToggle');
 
-    // Format to hh:mm AM/PM
+    let isAM = true;
+    let isInputIN = true;
+
     function formatTo12Hour(date) {
       let hours = date.getHours();
       let minutes = date.getMinutes();
       const ampm = hours >= 12 ? 'PM' : 'AM';
       hours = hours % 12 || 12;
-      minutes = minutes < 10 ? '0' + minutes : minutes;
+      minutes = String(minutes).padStart(2, '0');
       return `${hours}:${minutes} ${ampm}`;
+    }
+
+    function parseTimeInput(timeStr) {
+      const match = /^(\d{1,2}):(\d{2})$/.exec(timeStr.trim());
+      if (!match) return null;
+
+      let hours = parseInt(match[1], 10);
+      let minutes = parseInt(match[2], 10);
+      if (isNaN(hours) || isNaN(minutes) || minutes > 59 || hours > 23) return null;
+
+      // Handle 12-hour input
+      if (hours <= 12 && timeStr.length <= 5) {
+        if (!isAM && hours !== 12) hours += 12;
+        if (isAM && hours === 12) hours = 0;
+      }
+
+      return { hours, minutes };
+    }
+
+    function calculateTime() {
+      const parsed = parseTimeInput(timeInput.value);
+
+      if (!parsed) {
+        timeInput.classList.remove('valid');
+        timeInput.classList.add('invalid');
+        resultDiv.textContent = '';
+        return;
+      }
+
+      timeInput.classList.remove('invalid');
+      timeInput.classList.add('valid');
+
+      const baseDate = new Date();
+      baseDate.setHours(parsed.hours);
+      baseDate.setMinutes(parsed.minutes);
+      baseDate.setSeconds(0);
+
+      const delta = 9 * 60 + 30;
+      const calculatedDate = new Date(baseDate);
+
+      if (isInputIN) {
+        calculatedDate.setMinutes(calculatedDate.getMinutes() + delta);
+      } else {
+        calculatedDate.setMinutes(calculatedDate.getMinutes() - delta);
+      }
+
+      const label = isInputIN
+        ? `Calculated OUT Time`
+        : `Calculated IN Time`;
+      resultDiv.textContent = `${label}: ${formatTo12Hour(calculatedDate)}`;
     }
 
     function setDefaultTime() {
       const now = new Date();
-      timeInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const hr = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      timeInput.value = `${hr}:${min}`;
+      isAM = now.getHours() < 12;
+      ampmToggle.textContent = isAM ? 'AM' : 'PM';
       calculateTime();
     }
 
-    // Auto insert :
-    timeInput.addEventListener('input', function (e) {
+    timeInput.addEventListener('input', (e) => {
       let value = e.target.value.replace(/[^\d]/g, '');
       if (value.length >= 3) {
         value = value.slice(0, 2) + ':' + value.slice(2, 4);
@@ -182,77 +238,38 @@
 
     ampmToggle.addEventListener('click', () => {
       isAM = !isAM;
-      ampmToggle.innerText = isAM ? 'AM' : 'PM';
+      ampmToggle.textContent = isAM ? 'AM' : 'PM';
       calculateTime();
     });
 
     inoutToggle.addEventListener('click', () => {
-      isOUT = !isOUT;
-      inoutToggle.innerText = isOUT ? 'OUT' : 'IN';
-      inoutToggle.classList.toggle('active', isOUT);
+      isInputIN = !isInputIN;
+      inoutToggle.textContent = isInputIN ? 'IN Time' : 'OUT Time';
+      inoutToggle.classList.toggle('in-toggle', isInputIN);
+      inoutToggle.classList.toggle('out-toggle', !isInputIN);
+      inoutToggle.classList.toggle('active');
       calculateTime();
     });
 
-    function parseTimeInput(timeStr) {
-      const match = /^(\d{1,2}):(\d{2})$/.exec(timeStr.trim());
-      if (!match) return null;
-      let [_, hrs, mins] = match;
-      let hours = parseInt(hrs, 10);
-      let minutes = parseInt(mins, 10);
-      if (hours > 23 || minutes > 59) return null;
-
-      if (hours >= 13 || (hours === 0 && !isAM)) {
-        return { hours, minutes }; // 24h
-      }
-
-      // 12h mode
-      if (!isAM && hours !== 12) hours += 12;
-      if (isAM && hours === 12) hours = 0;
-
-      return { hours, minutes };
-    }
-
-    function calculateTime() {
-      const parsed = parseTimeInput(timeInput.value);
-      if (!parsed) {
-        timeInput.classList.remove('valid');
-        timeInput.classList.add('invalid');
-        resultDiv.innerText = '';
-        return;
-      }
-
-      timeInput.classList.remove('invalid');
-      timeInput.classList.add('valid');
-
-      const date = new Date();
-      date.setHours(parsed.hours);
-      date.setMinutes(parsed.minutes);
-      date.setSeconds(0);
-
-      const deltaMinutes = 9 * 60 + 30;
-      date.setMinutes(date.getMinutes() + (isOUT ? deltaMinutes : -deltaMinutes));
-
-      const result = formatTo12Hour(date);
-      resultDiv.innerText = `Result Time: ${result}`;
-    }
-
- function loadTheme() {
-  const saved = localStorage.getItem('theme');
-  if (saved === 'light') {
-    document.body.classList.remove('dark');
-    themeToggle.textContent = '🌙';
-  } else {
-    document.body.classList.add('dark');
-    themeToggle.textContent = '🌞';
-  }
-}
-
-
     themeToggle.addEventListener('click', () => {
-      const isDark = document.body.classList.toggle('dark');
-      themeToggle.textContent = isDark ? '🌞' : '🌙';
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      const body = document.body;
+      body.classList.toggle('light');
+      const isLight = body.classList.contains('light');
+      themeToggle.textContent = isLight ? '🌙' : '🌞';
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
     });
+
+    function loadTheme() {
+      const saved = localStorage.getItem('theme');
+      const body = document.body;
+      if (saved === 'light') {
+        body.classList.add('light');
+        themeToggle.textContent = '🌙';
+      } else {
+        body.classList.remove('light');
+        themeToggle.textContent = '🌞';
+      }
+    }
 
     window.onload = () => {
       loadTheme();
